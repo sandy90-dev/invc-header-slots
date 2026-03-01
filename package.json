@@ -2,7 +2,7 @@
   "name": "invc-header-slots",
   "version": "1.0.0",
   "description": "INVC Header prioritization game for stakeholder workshops",
-  "main": "electron/main.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "npx nodemon server.js",
