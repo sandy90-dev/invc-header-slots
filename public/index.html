@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>INVC Header Slots</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0C0C11; --surface: #14141C; --surface2: #1E1E28; --surface3: #262632;
+  --border: rgba(255,255,255,0.07); --border-m: rgba(255,255,255,0.13); --border-hi: rgba(255,255,255,0.22);
+  --ink: #EEEAF8; --ink-m: rgba(238,234,248,0.5); --ink-d: rgba(238,234,248,0.22);
+  --anchor: #F5C842; --anchor-d: rgba(245,200,66,0.12); --anchor-m: rgba(245,200,66,0.35);
+  --ctx: #9B72F5; --ctx-d: rgba(155,114,245,0.12); --ctx-m: rgba(155,114,245,0.35);
+  --green: #3DD68C; --green-d: rgba(61,214,140,0.1); --red: #F56565;
+  --mono: 'IBM Plex Mono', monospace; --sans: 'DM Sans', sans-serif; --display: 'Syne', sans-serif;
+  --r: 12px; --r-sm: 7px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: var(--sans); background: var(--bg); color: var(--ink); overflow-x: hidden; }
+
+/* ── ROLE SELECT ── */
+#screen-role { display:none; min-height:100vh; flex-direction:column; align-items:center; justify-content:center; padding:40px 20px; background:radial-gradient(ellipse 80% 60% at 50% 40%, rgba(155,114,245,0.08) 0%, transparent 70%); }
+#screen-role.active { display:flex; }
+.role-card { width:100%; max-width:480px; text-align:center; }
+.role-eyebrow { font-family:var(--mono); font-size:11px; letter-spacing:3px; text-transform:uppercase; color:var(--ink-m); margin-bottom:16px; }
+.role-title { font-family:var(--display); font-size:clamp(32px,6vw,52px); font-weight:800; line-height:1.05; margin-bottom:8px; letter-spacing:-1px; }
+.role-title span { color:var(--anchor); }
+.role-sub { font-size:15px; color:var(--ink-m); margin-bottom:40px; line-height:1.6; }
+.role-btns { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.role-btn { padding:20px 16px; border-radius:var(--r); border:1.5px solid var(--border-hi); background:var(--surface); color:var(--ink); cursor:pointer; transition:all 0.2s; text-align:left; font-family:var(--sans); -webkit-tap-highlight-color:transparent; }
+.role-btn:active { transform:scale(0.97); }
+.role-btn .rb-icon { font-size:28px; margin-bottom:10px; display:block; }
+.role-btn .rb-title { font-family:var(--display); font-size:16px; font-weight:700; margin-bottom:4px; }
+.role-btn .rb-desc { font-size:12px; color:var(--ink-m); line-height:1.5; }
+.role-btn.fac-btn { border-color:var(--anchor); background:var(--anchor-d); }
+
+/* ── JOIN SCREEN ── */
+.join-overlay { position:fixed; inset:0; z-index:300; background:var(--bg); display:flex; align-items:center; justify-content:center; padding:24px; animation:fadeIn 0.2s ease; }
+.join-overlay.hidden { display:none; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+.join-card { background:var(--surface); border:1.5px solid var(--border-hi); border-radius:20px; padding:32px 28px; max-width:420px; width:100%; text-align:center; }
+.join-eyebrow { font-family:var(--mono); font-size:10px; letter-spacing:3px; text-transform:uppercase; color:var(--ink-m); margin-bottom:10px; }
+.join-title { font-family:var(--display); font-size:26px; font-weight:800; letter-spacing:-0.5px; margin-bottom:6px; }
+.join-title span { color:var(--ctx); }
+.join-sub { font-size:13px; color:var(--ink-m); margin-bottom:24px; line-height:1.6; }
+.join-section-label { font-family:var(--mono); font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-d); margin-bottom:10px; text-align:left; }
+.avatar-big { font-size:52px; margin-bottom:10px; cursor:pointer; transition:transform 0.15s; display:block; }
+.avatar-big:hover { transform:scale(1.1); }
+.emoji-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:6px; margin-bottom:20px; }
+.emoji-opt { font-size:22px; padding:8px; border-radius:var(--r-sm); cursor:pointer; border:1.5px solid transparent; background:var(--surface2); transition:all 0.12s; -webkit-tap-highlight-color:transparent; }
+.emoji-opt:hover { border-color:var(--border-m); transform:scale(1.08); }
+.emoji-opt.picked { border-color:var(--ctx); background:var(--ctx-d); }
+.join-input { width:100%; padding:12px 16px; background:var(--surface2); border:1.5px solid var(--border-m); border-radius:var(--r-sm); color:var(--ink); font-family:var(--mono); font-size:14px; outline:none; transition:border-color 0.15s; margin-bottom:16px; }
+.join-input:focus { border-color:var(--ctx); }
+.join-input::placeholder { color:var(--ink-d); }
+.join-btn { width:100%; padding:14px; background:var(--ctx); color:white; border:none; border-radius:var(--r-sm); font-family:var(--display); font-size:15px; font-weight:700; cursor:pointer; transition:all 0.15s; }
+.join-btn:disabled { opacity:0.3; pointer-events:none; }
+
+/* ── TOP BAR ── */
+.topbar { display:flex; align-items:center; justify-content:space-between; padding:12px 18px; border-bottom:1px solid var(--border); background:rgba(12,12,17,0.95); backdrop-filter:blur(12px); position:sticky; top:0; z-index:50; flex-shrink:0; }
+.topbar-logo { font-family:var(--mono); font-size:11px; color:var(--anchor); letter-spacing:1px; }
+.topbar-round { background:var(--surface2); border:1px solid var(--border-m); border-radius:20px; padding:3px 10px; font-family:var(--mono); font-size:9px; color:var(--ink-m); }
+.badge { border-radius:20px; padding:4px 12px; font-family:var(--mono); font-size:10px; border:1px solid; display:flex; align-items:center; gap:5px; }
+.badge-voter { color:var(--ctx); border-color:var(--ctx); background:var(--ctx-d); }
+.badge-facil { color:var(--anchor); border-color:var(--anchor); background:var(--anchor-d); }
+.live-dot { width:5px; height:5px; border-radius:50%; background:var(--green); box-shadow:0 0 5px var(--green); animation:pulse 2s infinite; flex-shrink:0; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.prog-wrap { height:2px; background:var(--surface2); flex-shrink:0; }
+.prog-fill { height:100%; background:linear-gradient(90deg,var(--anchor),var(--ctx)); transition:width 0.6s ease; }
+
+/* ── SCREENS ── */
+.screen { display:none; min-height:100vh; flex-direction:column; }
+.screen.active { display:flex; }
+.body-scroll { flex:1; overflow-y:auto; padding:18px 16px 100px; }
+.body-scroll::-webkit-scrollbar { width:3px; }
+.body-scroll::-webkit-scrollbar-thumb { background:var(--border-hi); border-radius:3px; }
+
+/* ── ROUND HEADER ── */
+.round-eyebrow { font-family:var(--mono); font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-m); margin-bottom:5px; }
+.round-title { font-family:var(--display); font-size:20px; font-weight:800; line-height:1.15; letter-spacing:-0.3px; margin-bottom:5px; }
+.round-title .hl { color:var(--anchor); }
+.round-title .hc { color:var(--ctx); }
+.round-desc { font-size:12px; color:var(--ink-m); line-height:1.6; margin-bottom:14px; }
+.status-pip { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:20px; font-family:var(--mono); font-size:10px; border:1.5px solid; margin-bottom:14px; }
+
+/* ── ANCHOR BAR ── */
+.anchor-bar { background:rgba(245,200,66,0.07); border:1px solid rgba(245,200,66,0.2); border-radius:var(--r); padding:11px 13px; margin-bottom:16px; }
+.anchor-bar-label { font-family:var(--mono); font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--anchor); opacity:0.7; margin-bottom:8px; }
+.anchor-tags { display:flex; flex-wrap:wrap; gap:6px; }
+.anchor-tag { display:flex; align-items:center; gap:5px; padding:5px 10px; background:rgba(245,200,66,0.1); border:1px solid rgba(245,200,66,0.25); border-radius:var(--r-sm); font-size:11px; color:var(--anchor); font-family:var(--display); font-weight:700; }
+
+/* ── SLOTS ── */
+.sec-label { font-family:var(--mono); font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-d); margin-bottom:8px; display:flex; align-items:center; gap:7px; }
+.sec-label::after { content:''; flex:1; height:1px; background:var(--border); }
+.slots-row { display:grid; gap:8px; margin-bottom:16px; }
+.slots-row.g3 { grid-template-columns:repeat(3,1fr); }
+.slots-row.g4 { grid-template-columns:repeat(2,1fr); }
+.slot { min-height:74px; border-radius:var(--r); border:1.5px dashed; display:flex; flex-direction:column; align-items:center; justify-content:center; position:relative; cursor:pointer; transition:all 0.13s; -webkit-tap-highlight-color:transparent; overflow:hidden; }
+.slot.sa { border-color:var(--anchor-m); background:var(--anchor-d); }
+.slot.sc { border-color:var(--ctx-m); background:var(--ctx-d); }
+.slot.active.sa { border-style:solid; border-color:var(--anchor); background:rgba(245,200,66,0.18); transform:scale(1.02); }
+.slot.active.sc { border-style:solid; border-color:var(--ctx); background:rgba(155,114,245,0.18); transform:scale(1.02); }
+.slot-n { position:absolute; top:6px; left:8px; font-family:var(--mono); font-size:8px; color:var(--ink-d); }
+.slot-hint { font-size:10px; color:var(--ink-d); text-align:center; padding:0 8px; line-height:1.5; }
+.slot-hint .pl { font-size:16px; display:block; opacity:0.25; margin-bottom:1px; }
+.slot-content { width:100%; height:100%; min-height:74px; padding:9px 9px 7px; display:flex; flex-direction:column; justify-content:center; border-radius:calc(var(--r) - 2px); position:relative; }
+.slot-content.af { background:rgba(245,200,66,0.13); }
+.slot-content.cf { background:rgba(155,114,245,0.13); }
+.slot-icon { font-size:16px; margin-bottom:3px; }
+.slot-lbl { font-family:var(--display); font-size:11px; font-weight:700; line-height:1.3; }
+.slot-sub { font-family:var(--mono); font-size:8px; color:var(--ink-m); margin-top:2px; }
+.slot-rm { position:absolute; top:4px; right:4px; width:18px; height:18px; border-radius:50%; background:rgba(255,255,255,0.1); border:none; cursor:pointer; color:var(--ink); font-size:10px; display:flex; align-items:center; justify-content:center; }
+
+/* ── FIELD CHIPS ── */
+.chip-banner { background:var(--ctx-d); border:1px solid var(--ctx-m); border-radius:var(--r-sm); padding:7px 12px; margin-bottom:10px; font-size:11px; color:var(--ctx); font-family:var(--mono); display:none; }
+.chip-banner.on { display:block; }
+.chips { display:grid; grid-template-columns:repeat(2,1fr); gap:6px; margin-bottom:20px; }
+.chip { display:flex; align-items:center; gap:7px; padding:9px 11px; border-radius:var(--r-sm); border:1px solid var(--border); background:var(--surface2); cursor:pointer; font-size:12px; transition:all 0.12s; -webkit-tap-highlight-color:transparent; }
+.chip:active { transform:scale(0.96); }
+.chip.used { opacity:0.18; pointer-events:none; }
+.chip.hi { border-color:var(--ctx); background:var(--ctx-d); color:var(--ctx); }
+.chip-ico { font-size:14px; flex-shrink:0; }
+
+/* ── SUBMIT ── */
+.submit-btn { width:100%; padding:14px; background:var(--green); color:#0C0C11; border:none; border-radius:var(--r-sm); font-family:var(--display); font-size:14px; font-weight:700; cursor:pointer; transition:all 0.15s; }
+.submit-btn:disabled { opacity:0.25; pointer-events:none; }
+
+/* ── WAITING / POST-SUBMIT ── */
+.spinner { border-radius:50%; border:2.5px solid var(--border); border-top-color:var(--ctx); animation:spin 1s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+.voter-row { display:flex; align-items:center; gap:7px; padding:7px 10px; background:var(--surface2); border-radius:var(--r-sm); border:1px solid var(--border); font-size:11px; margin-bottom:5px; }
+.vdot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.vdot.go { background:var(--green); box-shadow:0 0 5px var(--green); }
+.vdot.wait { background:var(--ink-d); }
+
+/* ── TALLY ── */
+.trow { display:flex; align-items:center; gap:7px; margin-bottom:7px; }
+.tlbl { width:130px; font-size:10px; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.ttrack { flex:1; height:7px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+.tfill { height:100%; border-radius:4px; transition:width 0.9s cubic-bezier(0.34,1.2,0.64,1); }
+.tfill.af { background:var(--anchor); }
+.tfill.cf { background:var(--ctx); }
+.tval { font-family:var(--mono); font-size:9px; color:var(--ink-m); width:16px; text-align:right; }
+
+/* ── REVEALED TAGS ── */
+.rv-tags { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
+.rv-tag { padding:7px 13px; border-radius:8px; font-family:var(--display); font-size:12px; font-weight:700; display:flex; align-items:center; gap:6px; }
+.rv-tag.at { background:var(--anchor-d); border:1.5px solid var(--anchor); color:var(--anchor); }
+.rv-tag.ct { background:var(--ctx-d); border:1.5px solid var(--ctx); color:var(--ctx); }
+
+/* ── CONSENSUS CHIPS ── */
+.cons-row { display:flex; flex-wrap:wrap; gap:7px; margin-top:10px; }
+.cons-chip { padding:6px 12px; border-radius:7px; font-family:var(--display); font-size:11px; font-weight:700; display:flex; align-items:center; gap:5px; animation:pop 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards; opacity:0; }
+@keyframes pop { to{opacity:1;transform:scale(1)} from{opacity:0;transform:scale(0.82)} }
+.cons-chip.ac { background:var(--anchor-d); border:1.5px solid var(--anchor); color:var(--anchor); }
+.cons-chip.cc { background:var(--ctx-d); border:1.5px solid var(--ctx); color:var(--ctx); }
+
+/* ── FACILITATOR CONTROLS ── */
+.fsec { font-family:var(--mono); font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-d); margin:18px 0 8px; padding-top:14px; border-top:1px solid var(--border); }
+.fcontrols { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:16px 0; }
+.btn-rev { padding:10px 20px; background:var(--anchor); color:#0C0C11; border:none; border-radius:var(--r-sm); font-family:var(--display); font-size:13px; font-weight:700; cursor:pointer; }
+.btn-rev:disabled { opacity:0.3; pointer-events:none; }
+.btn-nxt { padding:10px 20px; background:var(--ctx); color:white; border:none; border-radius:var(--r-sm); font-family:var(--display); font-size:13px; font-weight:700; cursor:pointer; display:none; }
+.btn-nxt.on { display:inline-block; }
+.vcnt { font-family:var(--mono); font-size:10px; color:var(--ink-m); background:var(--surface2); border:1px solid var(--border); border-radius:20px; padding:5px 11px; }
+.vcnt span { color:var(--green); }
+.btn-sm { padding:7px 14px; background:transparent; border:1px solid var(--border-m); border-radius:var(--r-sm); font-family:var(--mono); font-size:10px; cursor:pointer; color:var(--ink-m); }
+.btn-danger { border-color:rgba(245,101,101,0.3); color:var(--red); }
+
+/* ── REVEAL OVERLAY ── */
+.overlay { position:fixed; inset:0; background:rgba(12,12,17,0.92); backdrop-filter:blur(18px); z-index:200; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity 0.25s; }
+.overlay.on { opacity:1; pointer-events:all; }
+.ov-card { background:var(--surface); border:1.5px solid var(--border-hi); border-radius:18px; padding:32px 28px; max-width:480px; width:100%; text-align:center; animation:slideUp 0.35s cubic-bezier(0.34,1.2,0.64,1); }
+@keyframes slideUp { from{transform:translateY(28px);opacity:0} to{transform:translateY(0);opacity:1} }
+.ov-eyebrow { font-family:var(--mono); font-size:9px; letter-spacing:3px; text-transform:uppercase; color:var(--ink-m); margin-bottom:8px; }
+.ov-title { font-family:var(--display); font-size:22px; font-weight:800; margin-bottom:5px; }
+.ov-sub { font-size:12px; color:var(--ink-m); margin-bottom:22px; line-height:1.6; }
+.ov-fields { display:flex; flex-wrap:wrap; gap:7px; justify-content:center; margin-bottom:22px; }
+.ov-close { padding:11px 24px; background:var(--surface2); color:var(--ink); border:1px solid var(--border-hi); border-radius:var(--r-sm); font-family:var(--display); font-size:13px; font-weight:600; cursor:pointer; width:100%; }
+
+/* ── SUMMARY ── */
+.sum-title { font-family:var(--display); font-size:24px; font-weight:800; letter-spacing:-0.5px; margin-bottom:3px; }
+.sum-sub { font-size:13px; color:var(--ink-m); margin-bottom:20px; }
+.sum-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; }
+.sum-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:14px; }
+.sum-lbl { font-family:var(--mono); font-size:9px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-m); margin-bottom:9px; display:flex; align-items:center; gap:6px; }
+.sdot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+.sum-fields { display:flex; flex-direction:column; gap:5px; }
+.sum-f { display:flex; align-items:center; gap:6px; font-size:11px; }
+.sum-rank { font-family:var(--mono); font-size:9px; color:var(--ink-d); width:12px; text-align:right; flex-shrink:0; }
+
+/* ── TOAST ── */
+.toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(70px); background:var(--surface2); color:var(--ink); border:1px solid var(--border-hi); padding:9px 18px; border-radius:24px; font-size:11px; font-family:var(--mono); z-index:999; opacity:0; transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1); pointer-events:none; white-space:nowrap; max-width:90vw; text-align:center; }
+.toast.on { transform:translateX(-50%) translateY(0); opacity:1; }
+</style>
+</head>
+<body>
+
+<!-- ROLE SELECT -->
+<div id="screen-role" class="active" style="display:flex;flex-direction:column;min-height:100vh;align-items:center;justify-content:center;padding:40px 20px;background:radial-gradient(ellipse 80% 60% at 50% 40%, rgba(155,114,245,0.08) 0%, transparent 70%)">
+  <div class="role-card">
+    <div class="role-eyebrow">INVC // Header Prioritization</div>
+    <h1 class="role-title">Header<br><span>Slots</span></h1>
+    <p class="role-sub">A facilitated voting game. Pick the fields that matter most per invoice status.</p>
+    <div class="role-btns">
+      <button class="role-btn fac-btn" onclick="selectRole('facilitator')">
+        <span class="rb-icon">🎯</span>
+        <div class="rb-title">Facilitator</div>
+        <div class="rb-desc">Run the session, reveal results, advance rounds</div>
+      </button>
+      <button class="role-btn" onclick="selectRole('participant')">
+        <span class="rb-icon">🗳️</span>
+        <div class="rb-title">Participant</div>
+        <div class="rb-desc">Vote on which fields matter for each status</div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- JOIN OVERLAY -->
+<div class="join-overlay hidden" id="joinOverlay">
+  <div class="join-card">
+    <div class="join-eyebrow">INVC // Header Slots</div>
+    <h2 class="join-title">Join the<br><span>session</span></h2>
+    <p class="join-sub">Pick an avatar and enter your name to get started.</p>
+    <div class="join-section-label">Choose your avatar</div>
+    <span class="avatar-big" id="avatarBig" onclick="toggleEmojiGrid()">🙂</span>
+    <div class="emoji-grid" id="emojiGrid" style="display:none">
+      <div class="emoji-opt" onclick="pickEmoji('🙂')">🙂</div>
+      <div class="emoji-opt" onclick="pickEmoji('😎')">😎</div>
+      <div class="emoji-opt" onclick="pickEmoji('🤔')">🤔</div>
+      <div class="emoji-opt" onclick="pickEmoji('🧠')">🧠</div>
+      <div class="emoji-opt" onclick="pickEmoji('🎯')">🎯</div>
+      <div class="emoji-opt" onclick="pickEmoji('🦊')">🦊</div>
+      <div class="emoji-opt" onclick="pickEmoji('🐙')">🐙</div>
+      <div class="emoji-opt" onclick="pickEmoji('🦋')">🦋</div>
+      <div class="emoji-opt" onclick="pickEmoji('🌊')">🌊</div>
+      <div class="emoji-opt" onclick="pickEmoji('🔥')">🔥</div>
+      <div class="emoji-opt" onclick="pickEmoji('⚡')">⚡</div>
+      <div class="emoji-opt" onclick="pickEmoji('🌈')">🌈</div>
+      <div class="emoji-opt" onclick="pickEmoji('🍀')">🍀</div>
+      <div class="emoji-opt" onclick="pickEmoji('🚀')">🚀</div>
+      <div class="emoji-opt" onclick="pickEmoji('🎨')">🎨</div>
+      <div class="emoji-opt" onclick="pickEmoji('💡')">💡</div>
+      <div class="emoji-opt" onclick="pickEmoji('🏔️')">🏔️</div>
+      <div class="emoji-opt" onclick="pickEmoji('🌺')">🌺</div>
+    </div>
+    <div class="join-section-label" style="margin-top:4px">Your name</div>
+    <input class="join-input" id="joinInput" placeholder="e.g. Ankur" maxlength="24"
+      oninput="document.getElementById('joinBtn').disabled=!this.value.trim()"
+      onkeydown="if(event.key==='Enter')doJoin()" />
+    <button class="join-btn" id="joinBtn" disabled onclick="doJoin()">Join session →</button>
+  </div>
+</div>
+
+<!-- VOTE SCREEN -->
+<div id="screen-vote" class="screen">
+  <div class="prog-wrap"><div class="prog-fill" id="vProg"></div></div>
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="topbar-logo">INVC</div>
+      <div class="topbar-round" id="vRound">Round 1 / 12</div>
+    </div>
+    <div class="badge badge-voter" id="voterBadge"><div class="live-dot"></div><span id="voterBadgeName">You</span></div>
+  </div>
+  <div class="body-scroll" id="voteBody"></div>
+</div>
+
+<!-- FACILITATOR SCREEN -->
+<div id="screen-facil" class="screen">
+  <div class="prog-wrap"><div class="prog-fill" id="fProg"></div></div>
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="topbar-logo">INVC</div>
+      <div class="topbar-round" id="fRound">Round 1 / 12</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="badge badge-facil">🎯 Facilitator</div>
+      <button class="btn-sm btn-danger" onclick="apiReset()">Reset</button>
+    </div>
+  </div>
+  <div class="body-scroll" id="facilBody"></div>
+</div>
+
+<!-- SUMMARY SCREEN -->
+<div id="screen-summary" class="screen">
+  <div class="body-scroll">
+    <div style="padding:4px 0 20px">
+      <h2 class="sum-title">Session complete 🎉</h2>
+      <p class="sum-sub">Consensus across all rounds.</p>
+      <div class="sum-grid" id="summaryGrid"></div>
+      <div style="margin-top:24px">
+        <button class="btn-sm btn-danger" style="font-size:12px;padding:9px 18px" onclick="apiReset()">Start new session</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- REVEAL OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="ov-card">
+    <div class="ov-eyebrow" id="ovEyebrow">Consensus</div>
+    <h2 class="ov-title" id="ovTitle">—</h2>
+    <p class="ov-sub" id="ovSub">—</p>
+    <div class="ov-fields" id="ovFields"></div>
+    <button class="ov-close" onclick="closeOverlay()">Got it →</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const FIELDS = [
+  {id:'supplier_name',    label:'Supplier name',          icon:'🏢'},
+  {id:'invoice_amt',      label:'Invoice amt + Currency', icon:'💰'},
+  {id:'due_date',         label:'Due date',               icon:'📅'},
+  {id:'invoice_type',     label:'Invoice type',           icon:'🏷️'},
+  {id:'invoice_date',     label:'Invoice date',           icon:'📆'},
+  {id:'po_number',        label:'PO #',                   icon:'📋'},
+  {id:'supplier_inv_num', label:'Supplier invoice #',     icon:'🔢'},
+  {id:'channel',          label:'Channel',                icon:'📡'},
+  {id:'inv_received_date',label:'Invoice received date',  icon:'📬'},
+  {id:'approver',         label:'Approver',               icon:'✅'},
+  {id:'match_type',       label:'Match type (2/3-way)',   icon:'🔗'},
+  {id:'goods_receipt',    label:'Goods receipt #',        icon:'📦'},
+  {id:'business_owner',   label:'Business owner',         icon:'👤'},
+  {id:'variance',         label:'Amt vs PO variance',     icon:'⚠️'},
+  {id:'suspected_match',  label:'Suspected match link',   icon:'🔍'},
+  {id:'duplicate_of',     label:'Duplicate of #InvLink',  icon:'🔁'},
+  {id:'payment_terms',    label:'Payment terms',          icon:'📜'},
+  {id:'cost_center',      label:'Cost center',            icon:'🏗️'},
+];
+
+const ROUNDS = [
+  {id:'anchors',          label:'Always-on Anchors',   slots:3, type:'anchor',  desc:'Pick 3 fields always visible regardless of invoice status.',            sc:null,      sd:null},
+  {id:'no_invoice',       label:'No invoice',          slots:4, type:'context', desc:'No invoice attached yet — what must still be visible?',                 sc:'#1E1A10', sd:'#888'},
+  {id:'draft',            label:'Draft',               slots:4, type:'context', desc:'Invoice in draft — what does the AP specialist need to act?',           sc:'#1E1A05', sd:'#D4A800'},
+  {id:'received',         label:'Received',            slots:4, type:'context', desc:'Invoice received — what contextual info is most critical?',             sc:'#051A10', sd:'#0FA86E'},
+  {id:'suspected_dupe',   label:'Suspected duplicate', slots:4, type:'context', desc:'Suspected duplicate flagged — what helps resolve it?',                  sc:'#1E0808', sd:'#E05252'},
+  {id:'confirmed_dupe',   label:'Confirmed duplicate', slots:4, type:'context', desc:'Confirmed duplicate — what fields enable the right action?',            sc:'#1A0505', sd:'#C03030'},
+  {id:'accepted',         label:'Accepted',            slots:4, type:'context', desc:'Invoice accepted — what bridges to the next step?',                     sc:'#051A0E', sd:'#28A745'},
+  {id:'po_error',         label:'PO matching error',   slots:4, type:'context', desc:'PO matching error — what helps resolve the mismatch?',                  sc:'#1A0805', sd:'#DC3545'},
+  {id:'po_complete',      label:'PO matching done',    slots:4, type:'context', desc:'PO matching complete — what info moves things forward?',                sc:'#051018', sd:'#17A2B8'},
+  {id:'no_exceptions',    label:'No exceptions found', slots:4, type:'context', desc:'Clean invoice — what confirms everything is in order?',                 sc:'#051A0E', sd:'#28A745'},
+  {id:'exceptions',       label:'Exceptions found',    slots:4, type:'context', desc:'Exceptions flagged — what helps triage and act fast?',                  sc:'#1A1805', sd:'#FFC107'},
+  {id:'pending_approval', label:'Pending approval',    slots:4, type:'context', desc:'Awaiting approval — what helps the approver decide quickly?',           sc:'#0D0818', sd:'#7C3AED'},
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let myRole = null;
+let myName = null;
+let myAvatar = '🙂';
+let myPicks = {};
+let selSlot = null;
+let serverState = null;
+let sse = null;
+
+ROUNDS.forEach(r => { myPicks[r.id] = new Array(r.slots).fill(null); });
+
+// ── JOIN FLOW ─────────────────────────────────────────────────────────────────
+function toggleEmojiGrid() {
+  const g = document.getElementById('emojiGrid');
+  g.style.display = g.style.display === 'none' ? 'grid' : 'none';
+}
+
+function pickEmoji(e) {
+  myAvatar = e;
+  document.getElementById('avatarBig').textContent = e;
+  document.querySelectorAll('.emoji-opt').forEach(el => el.classList.toggle('picked', el.textContent === e));
+  document.getElementById('emojiGrid').style.display = 'none';
+}
+
+async function doJoin() {
+  const name = document.getElementById('joinInput').value.trim();
+  if (!name) return;
+  myName = name;
+  await api('/api/join', { name, avatar: myAvatar });
+  document.getElementById('voterBadgeName').textContent = myAvatar + ' ' + name;
+  document.getElementById('joinOverlay').classList.add('hidden');
+  showScreen('vote');
+  connectSSE();
+}
+
+// ── ROLE SELECT ───────────────────────────────────────────────────────────────
+function selectRole(role) {
+  myRole = role;
+  if (role === 'facilitator') {
+    myName = 'Facilitator';
+    document.getElementById('screen-role').style.display = 'none';
+    showScreen('facil');
+    connectSSE();
+  } else {
+    document.getElementById('screen-role').style.display = 'none';
+    document.getElementById('joinOverlay').classList.remove('hidden');
+    setTimeout(() => document.getElementById('joinInput').focus(), 150);
+  }
+}
+
+// ── SSE ───────────────────────────────────────────────────────────────────────
+function connectSSE() {
+  if (sse) sse.close();
+  sse = new EventSource('/events');
+  sse.onmessage = e => {
+    serverState = JSON.parse(e.data);
+    onState(serverState);
+  };
+  sse.onerror = () => setTimeout(connectSSE, 3000);
+}
+
+function onState(s) {
+  if (!myRole) return;
+  if (myRole === 'facilitator') renderFacil(s);
+  else renderVote(s);
+}
+
+// ── PARTICIPANT RENDER ────────────────────────────────────────────────────────
+function renderVote(s) {
+  if (!s) return;
+  const rIdx = s.currentRound;
+  const round = ROUNDS[rIdx];
+  if (!round) { if (s.done) { showScreen('summary'); renderSummary(s); } return; }
+
+  document.getElementById('vProg').style.width = ((rIdx / ROUNDS.length) * 100) + '%';
+  document.getElementById('vRound').textContent = `Round ${rIdx+1} / ${ROUNDS.length}`;
+
+  const alreadyVoted = s.votes[round.id] && s.votes[round.id][myName];
+  const vb = document.getElementById('voteBody');
+  const currentKey = vb.dataset.key;
+
+  if (s.revealed && alreadyVoted) {
+    if (currentKey !== round.id + '-revealed') renderPostSubmit(vb, round, s);
+    return;
+  }
+  if (alreadyVoted) {
+    const newKey = round.id + '-waiting' + (s.revealed ? '-r' : '');
+    if (currentKey !== newKey) { renderPostSubmit(vb, round, s); vb.dataset.key = newKey; }
+    return;
+  }
+  if (currentKey !== round.id) {
+    myPicks[round.id] = new Array(round.slots).fill(null);
+    selSlot = null;
+    renderVotingUI(vb, round, rIdx);
+    vb.dataset.key = round.id;
+  }
+}
+
+function renderVotingUI(vb, round, rIdx) {
+  const picks = myPicks[round.id];
+  const used = picks.filter(Boolean);
+  const canSubmit = used.length === round.slots;
+  const isA = round.type === 'anchor';
+  const offset = isA ? 1 : 4;
+  const lbl = isA ? 'A' : 'S';
+  const stype = isA ? 'sa' : 'sc';
+  const fcls = isA ? 'af' : 'cf';
+  const gcls = round.slots === 3 ? 'g3' : 'g4';
+
+  // Locked anchors (rounds 2+)
+  const lockedIds = (!isA && serverState && serverState.consensus['anchors'])
+    ? serverState.consensus['anchors'].slice(0, 3) : [];
+  const lockedFields = lockedIds.map(id => FIELDS.find(x => x.id === id)).filter(Boolean);
+
+  const anchorBar = lockedFields.length ? `
+    <div class="anchor-bar">
+      <div class="anchor-bar-label">🔒 Always-on anchors — locked</div>
+      <div class="anchor-tags">
+        ${lockedFields.map(f => `<div class="anchor-tag">${f.icon} ${f.label}</div>`).join('')}
+      </div>
+    </div>` : '';
+
+  const statusPip = !isA ? `
+    <div class="status-pip" style="border-color:${round.sd};color:${round.sd};background:${round.sc}">
+      <span style="width:6px;height:6px;border-radius:50%;background:${round.sd};display:inline-block;flex-shrink:0"></span>${round.label}
+    </div>` : '';
+
+  let slotsHtml = '';
+  for (let i = 0; i < round.slots; i++) {
+    const fid = picks[i];
+    const f = fid ? FIELDS.find(x => x.id === fid) : null;
+    const active = selSlot === i;
+    slotsHtml += f
+      ? `<div class="slot ${stype}${active?' active':''}" onclick="selSlotFn(${i})">
+          <div class="slot-content ${fcls}">
+            <span class="slot-n">${lbl}${i+offset}</span>
+            <div class="slot-icon">${f.icon}</div>
+            <div class="slot-lbl">${f.label}</div>
+            <div class="slot-sub">${isA ? 'always on' : round.label}</div>
+            <button class="slot-rm" onclick="event.stopPropagation();rmSlot('${round.id}',${i})">✕</button>
+          </div></div>`
+      : `<div class="slot ${stype}${active?' active':''}" onclick="selSlotFn(${i})">
+          <span class="slot-n">${lbl}${i+offset}</span>
+          <div class="slot-hint"><span class="pl">+</span>${active ? 'Pick below ↓' : 'Tap to pick'}</div>
+        </div>`;
+  }
+
+  const chipHtml = FIELDS
+    .filter(f => !lockedIds.includes(f.id))
+    .map(f => {
+      const u = used.includes(f.id);
+      const h = !u && selSlot !== null;
+      return `<div class="chip${u?' used':''}${h?' hi':''}" onclick="pickField('${f.id}','${round.id}')">
+        <span class="chip-ico">${f.icon}</span><span>${f.label}</span>
+      </div>`;
+    }).join('');
+
+  vb.innerHTML = `
+    <div style="margin-bottom:14px">
+      <div class="round-eyebrow">Round ${rIdx+1} of ${ROUNDS.length}</div>
+      <h2 class="round-title">${isA ? '<span class="hl">Always-on</span> Anchors' : `<span class="hc">${round.label}</span>`}</h2>
+      <p class="round-desc">${round.desc}</p>
+    </div>
+    ${statusPip}${anchorBar}
+    <div class="sec-label">${isA ? '🔒 Pick 3 anchors' : '🔄 Pick 4 fields'}</div>
+    <div class="slots-row ${gcls}">${slotsHtml}</div>
+    <div class="chip-banner${selSlot !== null ? ' on' : ''}">👆 Slot ${(selSlot||0)+offset} selected — tap a card</div>
+    <div class="sec-label">Field cards</div>
+    <div class="chips">${chipHtml}</div>
+    <button class="submit-btn" id="submitBtn" onclick="submitVote('${round.id}')" ${canSubmit ? '' : 'disabled'}>
+      ${canSubmit ? 'Submit my picks →' : `Fill all ${round.slots} slots`}
+    </button>`;
+  vb.dataset.key = round.id;
+}
+
+function renderPostSubmit(vb, round, s) {
+  const votes = s.votes[round.id] || {};
+  const submitted = Object.keys(votes).length;
+  const total = s.participants.length;
+  const isA = round.type === 'anchor';
+  const myPicked = votes[myName] || [];
+  const tc = isA ? 'at' : 'ct';
+  const fc = isA ? 'af' : 'cf';
+  const canAdvance = s.revealed;
+  const allVoted = submitted >= total;
+
+  // Tally
+  const tally = {};
+  FIELDS.forEach(f => { tally[f.id] = 0; });
+  Object.values(votes).forEach(picks => picks.forEach(id => { if (tally[id] !== undefined) tally[id]++; }));
+  const topTally = Object.entries(tally).sort((a,b)=>b[1]-a[1]).filter(([,v])=>v>0).slice(0,8);
+  const maxV = topTally[0]?.[1]||1;
+  const tallyHtml = topTally.map(([id,v])=>{
+    const f = FIELDS.find(x=>x.id===id);
+    const pct = Math.round((v/maxV)*100);
+    return `<div class="trow"><div class="tlbl">${f.icon} ${f.label}</div><div class="ttrack"><div class="tfill ${fc}" style="width:${pct}%"></div></div><div class="tval">${v}</div></div>`;
+  }).join('') || `<div style="color:var(--ink-d);font-size:11px">No other votes yet</div>`;
+
+  const dotsHtml = s.participants.map(p => {
+    const done = !!(votes[p.name]);
+    const isMe = p.name === myName;
+    return `<div class="voter-row"><div class="vdot ${done?'go':'wait'}"></div><span style="font-size:14px">${p.avatar}</span><span style="flex:1;font-weight:${isMe?600:400}">${isMe?'You ('+p.name+')':p.name}</span>${done?'<span style="color:var(--green);font-size:10px">✓</span>':''}</div>`;
+  }).join('');
+
+  const myPicksHtml = myPicked.map(id => { const f=FIELDS.find(x=>x.id===id); return f?`<div class="rv-tag ${tc}">${f.icon} ${f.label}</div>`:''; }).join('');
+
+  const consBlock = canAdvance
+    ? `<div style="background:var(--ctx-d);border:1px solid var(--ctx-m);border-radius:var(--r);padding:14px 16px;margin-bottom:16px">
+        <div style="font-family:var(--display);font-weight:700;font-size:12px;color:var(--ctx);margin-bottom:10px">🎯 Round consensus</div>
+        <div class="rv-tags">${(s.consensus[round.id]||[]).slice(0,round.slots).map(id=>{ const f=FIELDS.find(x=>x.id===id); return f?`<div class="rv-tag ${tc}">${f.icon} ${f.label}</div>`:''; }).join('')}</div>
+      </div>
+      <button class="submit-btn" onclick="advanceRound()" style="background:var(--ctx);margin-bottom:16px">
+        ${ROUNDS.findIndex(r=>r.id===round.id)+1 < ROUNDS.length ? 'Next round →' : 'See summary →'}
+      </button>`
+    : `<div style="display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--surface2);border-radius:var(--r);border:1px solid var(--border);margin-bottom:16px">
+        <div class="spinner" style="width:22px;height:22px;flex-shrink:0"></div>
+        <div><div style="font-size:12px;font-weight:600">${allVoted?'All votes in — waiting for reveal':'Waiting for others'}</div>
+        <div style="font-size:11px;color:var(--ink-m);margin-top:2px">${submitted}/${total} submitted</div></div>
+      </div>`;
+
+  const descText = canAdvance
+    ? 'Consensus is ready — move to the next round.'
+    : allVoted ? 'Everyone voted — waiting for the facilitator to reveal.'
+    : `Waiting for others (${submitted}/${total} submitted).`;
+
+  vb.innerHTML = `
+    <div style="margin-bottom:16px">
+      <div class="round-eyebrow">Round ${ROUNDS.findIndex(r=>r.id===round.id)+1} of ${ROUNDS.length}</div>
+      <h2 class="round-title">✓ <span class="${isA?'hl':'hc'}">Submitted!</span></h2>
+      <p class="round-desc">${descText}</p>
+    </div>
+    <div class="sec-label">Your picks</div>
+    <div class="rv-tags" style="margin-bottom:18px">${myPicksHtml}</div>
+    ${consBlock}
+    <div class="sec-label">Live tally</div>
+    <div style="margin-bottom:18px">${tallyHtml}</div>
+    <div class="sec-label">Participants</div>
+    <div>${dotsHtml}</div>`;
+  vb.dataset.key = round.id + (canAdvance ? '-revealed' : '-waiting');
+}
+
+function advanceRound() {
+  // Participant advances their own view after reveal
+  selSlot = null;
+  if (!serverState) return;
+  const nextIdx = serverState.currentRound + 1;
+  if (nextIdx >= ROUNDS.length) { showScreen('summary'); renderSummary(serverState); return; }
+  const vb = document.getElementById('voteBody');
+  vb.dataset.key = '';
+  myPicks[ROUNDS[nextIdx].id] = new Array(ROUNDS[nextIdx].slots).fill(null);
+  renderVote(serverState);
+}
+
+// ── FACILITATOR RENDER ────────────────────────────────────────────────────────
+function renderFacil(s) {
+  if (!s) return;
+  if (s.done) { showScreen('summary'); renderSummary(s); return; }
+  const rIdx = s.currentRound;
+  const round = ROUNDS[rIdx];
+  if (!round) return;
+
+  document.getElementById('fProg').style.width = ((rIdx / ROUNDS.length) * 100) + '%';
+  document.getElementById('fRound').textContent = `Round ${rIdx+1} / ${ROUNDS.length}`;
+
+  const votes = s.votes[round.id] || {};
+  const subCount = Object.keys(votes).length;
+  const total = s.participants.length;
+  const isA = round.type === 'anchor';
+
+  // Tally
+  const tally = {};
+  FIELDS.forEach(f => { tally[f.id] = 0; });
+  Object.values(votes).forEach(picks => picks.forEach(id => { if (tally[id]!==undefined) tally[id]++; }));
+  const topTally = Object.entries(tally).sort((a,b)=>b[1]-a[1]).filter(([,v])=>v>0).slice(0,12);
+  const maxV = topTally[0]?.[1]||1;
+  const fc = isA ? 'af' : 'cf';
+
+  const tallyHtml = topTally.map(([id,v]) => {
+    const f = FIELDS.find(x=>x.id===id);
+    const pct = Math.round((v/maxV)*100);
+    return `<div class="trow"><div class="tlbl">${f.icon} ${f.label}</div><div class="ttrack"><div class="tfill ${fc}" style="width:${pct}%"></div></div><div class="tval">${v}</div></div>`;
+  }).join('') || `<div style="color:var(--ink-d);font-size:11px">Waiting for first vote...</div>`;
+
+  const statusPip = !isA ? `
+    <div class="status-pip" style="border-color:${round.sd};color:${round.sd};background:${round.sc}">
+      <span style="width:6px;height:6px;border-radius:50%;background:${round.sd};display:inline-block"></span>${round.label}
+    </div>` : '';
+
+  const cons = s.consensus[round.id]||[];
+  const consHtml = s.revealed && cons.length ? `
+    <div class="fsec">Top ${round.slots} consensus</div>
+    <div class="cons-row">
+      ${cons.slice(0,round.slots).map((id,i) => { const f=FIELDS.find(x=>x.id===id); return f?`<div class="cons-chip ${isA?'ac':'cc'}" style="animation-delay:${i*0.07}s">${f.icon} ${f.label}</div>`:''; }).join('')}
+    </div>` : '';
+
+  const voterHtml = s.participants.length
+    ? s.participants.map(p => {
+        const sub = !!(votes[p.name]);
+        return `<div class="voter-row">
+          <div class="vdot ${sub?'go':'wait'}"></div>
+          <span style="font-size:16px">${p.avatar}</span>
+          <span style="flex:1;font-size:12px;font-weight:500">${p.name}</span>
+          ${sub?'<span style="color:var(--green);font-size:11px">✓</span>':''}
+        </div>`;
+      }).join('')
+    : '<div style="color:var(--ink-d);font-size:12px;padding:8px 0">Waiting for participants to join...</div>';
+
+  document.getElementById('facilBody').innerHTML = `
+    <div style="margin-bottom:14px">
+      <div class="round-eyebrow">Round ${rIdx+1} of ${ROUNDS.length} — Facilitator</div>
+      <h2 class="round-title">${isA?'<span class="hl">Always-on</span> Anchors':`<span class="hc">${round.label}</span>`}</h2>
+      <p class="round-desc">${round.desc}</p>
+    </div>
+    ${statusPip}
+    <div class="fcontrols">
+      <button class="btn-rev" onclick="apiReveal()" ${subCount===0?'disabled':''}>
+        ${s.revealed?'✓ Revealed':`Reveal (${subCount}/${total||'?'} voted)`}
+      </button>
+      <button class="btn-nxt ${s.revealed?'on':''}" onclick="apiNext()">
+        ${rIdx+1 < ROUNDS.length ? 'Next round →' : 'Finish →'}
+      </button>
+      <div class="vcnt"><span>${subCount}</span>/${total||'?'} submitted</div>
+    </div>
+    <div class="fsec">Live tally</div>
+    ${tallyHtml}
+    ${consHtml}
+    <div class="fsec">Participants (${s.participants.length})</div>
+    <div>${voterHtml}</div>
+    <div class="fsec">Share</div>
+    <div style="font-family:var(--mono);font-size:11px;color:var(--ink-m);background:var(--surface2);border-radius:var(--r-sm);padding:10px 12px;cursor:pointer;word-break:break-all" onclick="copyLink()">
+      📋 ${window.location.href} — tap to copy
+    </div>`;
+}
+
+// ── INTERACTIONS ──────────────────────────────────────────────────────────────
+function selSlotFn(i) {
+  selSlot = selSlot === i ? null : i;
+  if (serverState) renderVotingUI(document.getElementById('voteBody'), ROUNDS[serverState.currentRound], serverState.currentRound);
+}
+
+function pickField(fid, rid) {
+  const picks = myPicks[rid];
+  if (selSlot === null) {
+    const empty = picks.indexOf(null);
+    if (empty === -1) { showToast('All slots filled — tap a slot to swap'); return; }
+    selSlot = empty;
+  }
+  const existing = picks.indexOf(fid);
+  if (existing !== -1 && existing !== selSlot) picks[existing] = null;
+  picks[selSlot] = fid;
+  selSlot = picks.indexOf(null);
+  if (selSlot === -1) selSlot = null;
+  if (serverState) renderVotingUI(document.getElementById('voteBody'), ROUNDS[serverState.currentRound], serverState.currentRound);
+}
+
+function rmSlot(rid, i) {
+  myPicks[rid][i] = null;
+  selSlot = i;
+  if (serverState) renderVotingUI(document.getElementById('voteBody'), ROUNDS[serverState.currentRound], serverState.currentRound);
+}
+
+async function submitVote(roundId) {
+  const picks = myPicks[roundId].filter(Boolean);
+  const ok = await api('/api/vote', { roundId, name: myName, picks });
+  if (ok) {
+    const vb = document.getElementById('voteBody');
+    vb.dataset.key = '';
+    if (serverState) renderVote(serverState);
+  }
+}
+
+async function apiReveal() {
+  if (!serverState) return;
+  const round = ROUNDS[serverState.currentRound];
+  const votes = serverState.votes[round.id] || {};
+  const tally = {};
+  FIELDS.forEach(f => { tally[f.id] = 0; });
+  Object.values(votes).forEach(picks => picks.forEach(id => { if(tally[id]!==undefined) tally[id]++; }));
+  const consensus = Object.entries(tally).sort((a,b)=>b[1]-a[1]).map(([id])=>id);
+  await api('/api/reveal', { roundId: round.id, consensus });
+
+  const top = consensus.slice(0, round.slots);
+  const tc = round.type==='anchor'?'at':'ct';
+  document.getElementById('ovEyebrow').textContent = `Round ${serverState.currentRound+1} consensus`;
+  document.getElementById('ovTitle').textContent = round.type==='anchor' ? 'Always-on Anchors' : round.label;
+  document.getElementById('ovSub').textContent = round.type==='anchor'
+    ? 'These 3 fields anchor the header regardless of status.'
+    : `Top picks for "${round.label}" status.`;
+  document.getElementById('ovFields').innerHTML = top.map(id => {
+    const f=FIELDS.find(x=>x.id===id); return f?`<div class="rv-tag ${tc}">${f.icon} ${f.label}</div>`:'';
+  }).join('');
+  document.getElementById('overlay').classList.add('on');
+}
+
+function closeOverlay() { document.getElementById('overlay').classList.remove('on'); }
+
+async function apiNext() {
+  selSlot = null;
+  await api('/api/next', {});
+}
+
+async function apiReset() {
+  myPicks = {};
+  ROUNDS.forEach(r => { myPicks[r.id] = new Array(r.slots).fill(null); });
+  selSlot = null;
+  await api('/api/reset', {});
+  window.location.reload();
+}
+
+function copyLink() {
+  navigator.clipboard.writeText(window.location.href)
+    .then(() => showToast('Link copied!'))
+    .catch(() => showToast('Copy the URL from your browser address bar'));
+}
+
+// ── SUMMARY ───────────────────────────────────────────────────────────────────
+function renderSummary(s) {
+  const grid = document.getElementById('summaryGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  ROUNDS.forEach(round => {
+    const cons = s.consensus[round.id];
+    if (!cons||!cons.length) return;
+    const top = cons.slice(0,round.slots);
+    const dot = round.type==='anchor'?'var(--anchor)':(round.sd||'var(--ctx)');
+    grid.innerHTML += `<div class="sum-card">
+      <div class="sum-lbl"><div class="sdot" style="background:${dot}"></div>${round.label}</div>
+      <div class="sum-fields">
+        ${top.map((id,i)=>{ const f=FIELDS.find(x=>x.id===id); return f?`<div class="sum-f"><div class="sum-rank">${i+1}</div><span style="font-size:13px">${f.icon}</span><span>${f.label}</span></div>`:''; }).join('')}
+      </div>
+    </div>`;
+  });
+}
+
+// ── API ───────────────────────────────────────────────────────────────────────
+async function api(path, body) {
+  try {
+    const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    return r.json();
+  } catch(e) { showToast('Network error'); return null; }
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('screen-'+id);
+  if (el) el.classList.add('active');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 2800);
+}
+</script>
+</body>
+</html>

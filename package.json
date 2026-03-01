@@ -1,0 +1,46 @@
+{
+  "name": "invc-header-slots",
+  "version": "1.0.0",
+  "description": "INVC Header prioritization game for stakeholder workshops",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "npx nodemon server.js",
+    "electron": "electron .",
+    "dist:mac": "npx electron-builder --mac --publish never",
+    "dist:win": "npx electron-builder --win --publish never",
+    "dist:linux": "npx electron-builder --linux --publish never"
+  },
+  "build": {
+    "appId": "com.servicenow.invc-header-slots",
+    "productName": "INVC Header Slots",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "server.js",
+      "public/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "electron/icon.icns",
+      "target": ["dmg", "zip"]
+    },
+    "win": {
+      "icon": "electron/icon.ico",
+      "target": ["nsis", "portable"]
+    },
+    "linux": {
+      "target": ["AppImage", "deb"]
+    }
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1"
+  }
+}
