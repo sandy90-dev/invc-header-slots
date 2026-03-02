@@ -193,6 +193,130 @@ html, body { height: 100%; font-family: var(--sans); background: var(--bg); colo
 /* ── TOAST ── */
 .toast { position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(70px); background:var(--surface2); color:var(--ink); border:1px solid var(--border-hi); padding:9px 18px; border-radius:24px; font-size:11px; font-family:var(--mono); z-index:999; opacity:0; transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1); pointer-events:none; white-space:nowrap; max-width:90vw; text-align:center; }
 .toast.on { transform:translateX(-50%) translateY(0); opacity:1; }
+
+/* ── WEB-FRIENDLY SCALE-UP ─────────────────────────────────────────────────── */
+
+/* Topbar */
+.topbar { padding: 14px 28px; }
+.topbar-logo { font-size: 14px; letter-spacing: 2px; }
+.topbar-round { font-size: 12px; padding: 5px 14px; }
+.badge { font-size: 13px; padding: 6px 16px; gap: 7px; }
+.live-dot { width: 7px; height: 7px; }
+
+/* Body container — centred with readable max-width */
+.body-scroll { padding: 32px 28px 120px; max-width: 900px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+
+/* Round header */
+.round-eyebrow { font-size: 12px; letter-spacing: 2.5px; margin-bottom: 8px; }
+.round-title { font-size: clamp(26px, 4vw, 36px); margin-bottom: 10px; }
+.round-desc { font-size: 15px; margin-bottom: 22px; line-height: 1.65; }
+.status-pip { font-size: 13px; padding: 7px 18px; margin-bottom: 18px; }
+
+/* Anchor bar */
+.anchor-bar { padding: 14px 18px; margin-bottom: 22px; }
+.anchor-bar-label { font-size: 11px; margin-bottom: 10px; }
+.anchor-tag { font-size: 13px; padding: 7px 14px; gap: 7px; }
+
+/* Section labels */
+.sec-label { font-size: 11px; letter-spacing: 2px; margin-bottom: 12px; }
+
+/* Slots */
+.slot { min-height: 108px; border-radius: 14px; }
+.slot-n { font-size: 11px; top: 9px; left: 11px; }
+.slot-hint { font-size: 14px; padding: 0 12px; }
+.slot-hint .pl { font-size: 22px; margin-bottom: 3px; }
+.slot-content { min-height: 108px; padding: 14px 12px 10px; }
+.slot-icon { font-size: 22px; margin-bottom: 5px; }
+.slot-lbl { font-size: 14px; line-height: 1.35; }
+.slot-sub { font-size: 11px; margin-top: 4px; }
+.slot-rm { width: 22px; height: 22px; font-size: 12px; top: 6px; right: 6px; }
+
+/* Field chips */
+.chip-banner { font-size: 13px; padding: 10px 16px; margin-bottom: 14px; border-radius: 10px; }
+.chips { gap: 9px; margin-bottom: 26px; }
+.chip { padding: 13px 15px; font-size: 14px; gap: 10px; border-radius: 10px; }
+.chip-ico { font-size: 18px; }
+
+/* Submit */
+.submit-btn { font-size: 16px; padding: 17px; border-radius: 11px; }
+
+/* Tally bars */
+.trow { margin-bottom: 11px; gap: 10px; }
+.tlbl { width: 185px; font-size: 13px; }
+.ttrack { height: 10px; border-radius: 5px; }
+.tval { font-size: 12px; width: 22px; }
+
+/* Waiting / voter rows */
+.voter-row { padding: 11px 15px; font-size: 13px; margin-bottom: 8px; gap: 10px; }
+.vdot { width: 9px; height: 9px; }
+
+/* Revealed tags */
+.rv-tags { gap: 10px; margin-top: 16px; }
+.rv-tag { font-size: 14px; padding: 9px 17px; border-radius: 10px; gap: 8px; }
+
+/* Consensus chips */
+.cons-row { gap: 10px; margin-top: 14px; }
+.cons-chip { font-size: 13px; padding: 9px 17px; border-radius: 9px; }
+
+/* Facilitator controls */
+.fsec { font-size: 11px; letter-spacing: 2px; margin: 24px 0 12px; padding-top: 18px; }
+.fcontrols { gap: 12px; margin: 20px 0; }
+.btn-rev { font-size: 15px; padding: 13px 30px; border-radius: 10px; }
+.btn-nxt { font-size: 15px; padding: 13px 30px; border-radius: 10px; }
+.vcnt { font-size: 12px; padding: 7px 16px; }
+.btn-sm { font-size: 12px; padding: 9px 18px; border-radius: 9px; }
+
+/* Overlay */
+.ov-card { padding: 44px 40px; border-radius: 22px; }
+.ov-eyebrow { font-size: 11px; letter-spacing: 3px; margin-bottom: 10px; }
+.ov-title { font-size: 30px; margin-bottom: 8px; }
+.ov-sub { font-size: 14px; margin-bottom: 30px; line-height: 1.65; }
+.ov-fields { gap: 10px; margin-bottom: 30px; }
+.ov-close { font-size: 15px; padding: 15px; border-radius: 10px; }
+
+/* Join card */
+.join-card { padding: 44px 40px; border-radius: 22px; }
+.join-eyebrow { font-size: 11px; letter-spacing: 3px; margin-bottom: 12px; }
+.join-title { font-size: 34px; margin-bottom: 8px; }
+.join-sub { font-size: 15px; margin-bottom: 28px; line-height: 1.65; }
+.join-section-label { font-size: 11px; letter-spacing: 2px; margin-bottom: 12px; }
+.avatar-big { font-size: 64px; margin-bottom: 12px; }
+.emoji-grid { gap: 8px; margin-bottom: 24px; }
+.emoji-opt { font-size: 26px; padding: 10px; border-radius: 10px; }
+.join-input { padding: 15px 18px; font-size: 15px; border-radius: 10px; margin-bottom: 18px; }
+.join-btn { font-size: 16px; padding: 16px; border-radius: 10px; }
+
+/* Role select */
+.role-card { max-width: 560px; }
+.role-eyebrow { font-size: 12px; letter-spacing: 3px; margin-bottom: 20px; }
+.role-btns { gap: 18px; }
+.role-btn { padding: 26px 22px; border-radius: 16px; }
+.role-btn .rb-icon { font-size: 36px; margin-bottom: 12px; }
+.role-btn .rb-title { font-size: 19px; margin-bottom: 6px; }
+.role-btn .rb-desc { font-size: 13px; line-height: 1.55; }
+
+/* Summary */
+.sum-title { font-size: 32px; margin-bottom: 6px; }
+.sum-sub { font-size: 15px; margin-bottom: 26px; }
+.sum-grid { gap: 14px; }
+.sum-card { padding: 20px; border-radius: 14px; }
+.sum-lbl { font-size: 11px; letter-spacing: 2px; margin-bottom: 12px; gap: 8px; }
+.sdot { width: 7px; height: 7px; }
+.sum-fields { gap: 8px; }
+.sum-f { font-size: 14px; gap: 9px; }
+.sum-rank { font-size: 11px; width: 16px; }
+
+/* Toast */
+.toast { font-size: 13px; padding: 12px 24px; border-radius: 28px; }
+
+/* Desktop: 3-col chips, wider slots */
+@media (min-width: 780px) {
+  .chips { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 600px) {
+  .slots-row.g4 { grid-template-columns: repeat(4, 1fr); }
+  .slots-row.g3 { grid-template-columns: repeat(3, 1fr); }
+}
 </style>
 </head>
 <body>
